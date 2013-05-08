@@ -1,0 +1,262 @@
+imports:
+    - { resource: parameters.ini }
+    - { resource: security.yml }
+
+framework:
+    #esi:             ~
+    #translator:      { fallback: %locale% }
+    secret:          %secret%
+    charset:         UTF-8
+    router:          { resource: "%kernel.root_dir%/config/routing.yml" }
+    form:            true
+    csrf_protection: true
+    validation:      { enable_annotations: true }
+    templating:       
+      engines: ['twig']  #assets_version: SomeVersionScheme
+    session:
+        default_locale: %locale%
+        lifetime:       604800
+        auto_start:     true
+
+# Twig Configuration
+twig:
+    debug:            %kernel.debug%
+    strict_variables: %kernel.debug%
+    globals:
+        baseDomain: %domain%
+    form:
+        resources:
+            - LexikFormFilterBundle:Form:form_div_layout.html.twig
+
+# Assetic Configuration
+assetic:
+    debug:          %kernel.debug%
+    use_controller: false
+    # java: /usr/bin/java
+    filters:
+        cssrewrite: ~
+        # closure:
+        #     jar: %kernel.root_dir%/java/compiler.jar
+        # yui_css:
+        #     jar: %kernel.root_dir%/java/yuicompressor-2.4.2.jar
+
+# Doctrine Configuration
+doctrine:
+    dbal:
+        driver:   %database_driver%
+        host:     %database_host%
+        port:     %database_port%
+        dbname:   %database_name%
+        user:     %database_user%
+        password: %database_password%
+        charset:  UTF8
+
+    orm:
+        auto_generate_proxy_classes: %kernel.debug%
+        auto_mapping: true
+
+# Swiftmailer Configuration
+swiftmailer:
+    transport: sendmail
+    host:      localhost
+    encryption: 
+    auth_mode:  ~
+    username:  root
+    password:  adm1n1strat0R
+
+jms_security_extra:
+    secure_controllers:  true
+    secure_all_services: false
+
+knp_paginator:
+    page_range: 5
+    template:
+        pagination: KnpPaginatorBundle:Pagination:sliding.html.twig
+        sortable: KnpPaginatorBundle:Pagination:sortable_link.html.twig
+
+services:
+    pr.labels:
+        class:        PR\Bundle\UtilitiesBundle\Controller\LabelsController
+
+    pr.ip.access:
+        class:        PR\Bundle\UtilitiesBundle\Controller\IpAccessController
+        arguments: [@doctrine.orm.entity_manager]
+
+    pr.item.status:
+        class:      PR\Bundle\UtilitiesBundle\Controller\ItemStatusController
+        arguments: [@doctrine.orm.entity_manager]
+        arguments:    [@session]
+
+    pr.cart.info:
+        class:      PR\Bundle\UtilitiesBundle\Controller\CartAccessController
+        arguments:    [@doctrine.orm.entity_manager, @session]
+
+    pr.sanitizing:
+        class:      PR\Bundle\UtilitiesBundle\Controller\SanitizingController
+
+    pr.cryptography:
+        class:        PR\Bundle\UtilitiesBundle\Controller\CryptController        
+
+    is_valid:
+        class:        PR\Bundle\UtilitiesBundle\Controller\AccessValidationController
+        arguments:    [@session]
+
+    pr.action.util.string:
+        class:        PR\Bundle\UtilitiesBundle\Controller\UtilStringController
+
+    pr.action.util:
+        class:        PR\Bundle\UtilitiesBundle\Controller\UtilController
+        arguments: [@doctrine.orm.entity_manager]
+
+    pr.captcha:
+        class:        PR\Bundle\UtilitiesBundle\Controller\CaptchaController
+        arguments: [@doctrine.orm.entity_manager]
+
+    pr.twig.util_extension:
+        class: PR\Bundle\GlobalConfiguration\GeneralBundle\Twig\UtilExtension
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util]
+        tags:
+            - { name: twig.extension }
+
+    pr.cart:
+        class:  PR\Bundle\GlobalConfiguration\FrontEndBundle\Controller\CartController
+        arguments: [@doctrine.orm.entity_manager]
+
+    pr.quote.price:
+        class:  PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\QuotePriceServiceController
+        arguments: [@doctrine.orm.entity_manager]
+
+#ControlBox Services
+#    controlboxgt:
+#        class:  PR\Bundle\UtilitiesBundle\Controller\ControlBoxControllerGt
+#        arguments: [@doctrine.orm.entity_manager]
+#    controlboxsv:
+#        class:  PR\Bundle\UtilitiesBundle\Controller\ControlBoxControllerSv
+#        arguments: [@doctrine.orm.entity_manager]
+#    controlboxpa:
+#        class:  PR\Bundle\UtilitiesBundle\Controller\ControlBoxControllerPa
+#        arguments: [@doctrine.orm.entity_manager]
+
+#DebugUtilString
+    pr.debug.action.util.string:
+        class:        PR\Bundle\UtilitiesBundle\Controller\DebugUtilStringController
+#Gateway Service
+    credomaticservice:
+        class: PR\Bundle\PaymentManagerBundle\Controller\CredomaticServiceController
+
+#AirTrakcing, USTracking services
+    controlbox:
+        class:  PR\Bundle\UtilitiesBundle\Controller\ControlBoxController
+        arguments: [@doctrine.orm.entity_manager]
+
+#Guatemala Controllers
+    cobranddefaultcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Cobrand\CobrandDefaultController
+        arguments: [@doctrine.orm.entity_manager]
+
+    agencydefaultcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Agency\AgencyDefaultController
+        arguments: [@doctrine.orm.entity_manager]
+
+    localcourierdefaultcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\LocalCourier\LocalCourierDefaultController
+        arguments: [@doctrine.orm.entity_manager]
+
+#Panama Controllers
+    prpanamacontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Cobrand\PRPanamaController
+        arguments: [@doctrine.orm.entity_manager]
+
+    airboxexpresscontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Agency\AirboxExpressController
+        arguments: [@doctrine.orm.entity_manager]
+
+    localcourierpanamacontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\LocalCourier\LocalCourierPanamaController
+        arguments: [@doctrine.orm.entity_manager]
+
+#El Salvador Controllers
+    prelsalvadorcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Cobrand\PRElSalvadorController
+        arguments: [@doctrine.orm.entity_manager]
+
+    agencyelsalvadorcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Agency\AgencyElSalvadorController
+        arguments: [@doctrine.orm.entity_manager]
+
+    localcourierelsalvadorcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\LocalCourier\LocalCourierElSalvadorController
+        arguments: [@doctrine.orm.entity_manager]
+
+#Store Controllers
+    storedefaultcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Store\StoreDefaultController
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util.string]
+
+    amazoncontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Store\AmazonController
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util.string]
+
+    macyscontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Store\MacysController
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util.string]
+
+    victoriassecretcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Store\VictoriasSecretController
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util.string]
+
+    gapcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Store\GAPController
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util.string]
+
+    oldnavycontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Store\OldNavyController
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util.string]
+
+    bananarepubliccontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Store\BananaRepublicController
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util.string]
+
+    piperlimecontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Store\PiperlimeController
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util.string]
+
+    athletacontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Store\AthletaController
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util.string]
+
+#Toolbar Controllers
+    toolbarsimplecontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Toolbar\ToolbarSimpleController
+        arguments: [@doctrine.orm.entity_manager]
+
+    toolbaramazonoffercontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Toolbar\ToolbarAmazonOfferController
+        arguments: [@doctrine.orm.entity_manager]
+
+    toolbargapcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Toolbar\ToolbarGAPController
+        arguments: [@doctrine.orm.entity_manager]
+
+    toolbargapcustomizablecontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Toolbar\ToolbarGAPCustomizableController
+        arguments: [@doctrine.orm.entity_manager]
+
+    toolbarmacyscontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Toolbar\ToolbarMacysController
+        arguments: [@doctrine.orm.entity_manager]
+
+    toolbarvictoriassecretcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Toolbar\ToolbarVictoriasSecretController
+        arguments: [@doctrine.orm.entity_manager]
+
+#Extra Validation
+    laprensavalidation:
+        class:        PR\Bundle\PaymentManagerBundle\Controller\ExtraValidation\LaPrensaController
+        arguments: [@doctrine.orm.entity_manager]
+
+#Recargos
+    #Este de credomatic es solamente de ejemplo
+    credomaticsurchargefee:
+        class:        PR\Bundle\PaymentManagerBundle\Controller\SurChargeFee\CredomaticController
+        arguments: [@doctrine.orm.entity_manager]
