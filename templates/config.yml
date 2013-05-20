@@ -1,0 +1,10 @@
+
+#Store Controllers
+    neweggcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Store\NeweggController
+        arguments: [@doctrine.orm.entity_manager, @pr.action.util.string]
+
+#Toolbar Controllers
+    toolbarneweggcontroller:
+        class:        PR\Bundle\GlobalConfiguration\QuotePriceManagerBundle\Controller\Toolbar\ToolbarNeweggController
+        arguments: [@doctrine.orm.entity_manager]

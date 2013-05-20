@@ -1,0 +1,213 @@
+/* -------------------------- DEBUG CONFIGURATION  -----------------------------
+PR2 = {};
+PR2.base = "http://localhost/";
+PR2.stylesheet = "pidelo-rapido-2/web/styles/prtbstyle.css";
+----------------------------------------------------------------------------- */
+
+PR2 = {};
+PR2.base = "http://{{ baseDomain }}/";
+PR2.stylesheet = "styles/prtbstyle.css";
+
+// Query for document head
+$pqhead = jQuery("head");
+
+// Create the styling
+$pqstylelink = jQuery("<link rel='stylesheet' href='" + PR2.base + PR2.stylesheet + "' media='screen'/>");
+
+// Append styles
+$pqhead.append($pqstylelink);
+
+PR2.view = 
+	"\
+		<span class='section first'>\
+			<span class='logo-container'>\
+				{% block toolbarimage %}\
+				{% for item in FindByCobrandAndPosition(cobrand,country,'toolbarimage')%}
+						{% if item['type']|lower is sameas("imagemodule") %}
+							{% render item['render']~":image" with{'id':item['id']} %}
+						{% else %}
+							{% render item['render']~":index" with{'id':item['id']}%}
+						{% endif %}
+					{% endfor %}
+			{% endblock %}\
+			</span>\
+			<span class='logo-end'></span>\
+		</span>\
+		<span class='section separator'></span>\
+		\
+		<span id='pr-result'>\
+			<span class='section price'>\
+				<b>Precio: $@price</b> \
+			</span>\
+			\
+			<span class='section'>\
+				<b>Peso:</b> @weight lbs\
+			</span>\
+			\
+			<span class='section'>\
+				<b>Categor&iacute;a:</b> @category @importTax\
+			</span>\
+			\
+			<span class='section big total'>\
+				<b>Total: @sign @finalPrice @ecFinalPrice</b> \
+			</span>\
+			\
+		</span>\
+		\
+		<span class='section separator'></span>\
+		\
+		<span class='section'>\
+			<a id='pr-addToCart' href='@action'>Agregar a la carreta</a>\
+			<img src='http://{{ baseDomain }}/images/loader.gif' width='16' height='16' id='pr-loader' />\
+		</span>\
+		\
+		<span class='section separator'></span>\
+		<span class='section'>\
+			<a class='cart' target='_blank' href='@URLCart'>\
+				<span>@NumberItems</span>\
+			</a>\
+		</span>\
+		<span class='section leftless'>\
+			<strong><a target='_blank' href='@URLCart'>\
+				<span>@sign. @TotalInCart @extraCurrency</span>\
+			</a></strong>\
+		</span>\
+		\
+		<span class='section pright'>\
+			<a id='pr-config' href='#config' class='gear toolbar-action'></a>\
+		</span>\
+		\
+		<div class='config toolbar-panel'>\
+			@contextMenu\
+		</div>\
+	";
+
+jQuery(document).ready(function(){
+    // Useful vars
+    var $pqhtml = jQuery("html"),
+        $pqbody = jQuery("body"),
+
+    // Create the toolbar
+    $pqtoolbar = jQuery("<div id='pr2-toolbar' style='display:none;'></div>");
+    
+    // Scroll for quirks (old IE display mode)
+    var mode=document.compatMode;
+    if(mode && mode=='BackCompat' && jQuery.browser.msie){
+        $pqtoolbar.css("position", "absolute");
+        $pqtoolbar.css("width", "101%");
+        var offset = $pqtoolbar.offset();
+        $window    = jQuery(window);
+        $window.scroll(function() {
+            $pqtoolbar.animate({"top": $window.scrollTop() + "px"}, 5);
+        });
+    }
+
+    // Format the toolbar
+    $pqtoolbar.append(jQuery(PR2.view));
+
+    // Inject toolbar
+    $pqbody.prepend($pqtoolbar);
+
+    // Action and panel
+    jQuery('#pr2-toolbar .toolbar-action').click(function(e){
+        e.preventDefault();
+        var shouldHide = jQuery(this).hasClass('active');
+        jQuery('#pr2-toolbar .toolbar-panel').hide();
+        jQuery('#pr2-toolbar .active').removeClass('active');
+        if(shouldHide){
+            jQuery(this).parent().next().hide();
+            jQuery(this).removeClass('active');
+        }
+        else{
+            jQuery(this).parent().next().show();
+            jQuery(this).addClass('active');
+        }
+    });
+
+    /* ------------------- BROWSER SIDE STORE EXTRACTORS ------------------------ */
+    function prGetNewImage(){
+        productImage = "";
+        if(jQuery("#mainView_1"))
+        {
+            productImage = jQuery("#mainView_1").attr("src");
+        }
+    }
+
+    function prGetNewName(){
+        if(jQuery("#productTitle"))
+        {
+            productName = jQuery("#productTitle").html();
+        }else
+        {
+            productName = "Macys product";
+        }
+        return productName;
+    }
+
+    function prGetNewPrice(){
+        return jQuery("meta[itemprop=price]").attr("content");
+    }
+
+    function prGetFullCustomization(){
+
+        // Check for color
+        if(jQuery("#pdpAttributes .productColor").html() != null){
+            customColor = "Color: " + jQuery("#pdpAttributes .productColor").html() + " ";
+        }
+        else{
+            customColor = "";
+        }
+        
+        // Check for size
+        if(jQuery("#pdpAttributes .sizes .selected span").html() != null){
+            customSize = "Size: " + jQuery("#pdpAttributes .sizes .selected span").html();
+        }
+        else{
+            customSize = "";
+        }
+        return (customColor + customSize);
+    }
+    /* ---------------------------------------------------------------------- */
+
+    function prSendToServer(price, fullCustomization, productName, productImage){
+
+        // Create inline form controllers
+        $productPriceControl = jQuery('<input type="text" name="productPrice" value="'+price+'"/>');
+        $productDescriptionControl = jQuery('<input type="text" name="productDescription" value="'+fullCustomization+'"/>');
+        $productImageControl = jQuery('<input type="text" name="productImage" value="'+productImage+'"/>');
+        $productNameControl = jQuery('<input type="text" name="productName" value="'+productName+'"/>');
+
+        // Create form
+        $form = jQuery('<form style="display:none;" method="POST" action="'+jQuery(this).attr('href')+'"></form>');
+
+        // Construct form
+        $form.append($productPriceControl);
+        $form.append($productDescriptionControl);
+        $form.append($productImageControl);
+        $form.append($productNameControl);
+        $form.appendTo('#pr-result');
+
+        // Submit
+        $form.submit();
+    }
+
+    // Add to cart function
+    jQuery('#pr-addToCart').click(function(e){
+        e.preventDefault();
+
+        // Check if price changed
+        price = prGetNewPrice();
+
+        // Get product full customization
+        fullCustomization = prGetFullCustomization();
+
+        // Check if product name changed
+        productName = prGetNewName();
+        
+        // Check if product image changed
+        productImage = prGetNewName();
+
+        // Send data to server
+        prSendToServer(price, fullCustomization, productName, productImage);       
+    }); 
+});
